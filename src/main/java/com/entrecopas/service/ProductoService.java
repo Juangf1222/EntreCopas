@@ -1,10 +1,11 @@
 package com.entrecopas.service;
 
-import com.entrecopas.model.Producto;
-import com.entrecopas.repository.ProductoRepository;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.entrecopas.model.Producto;
+import com.entrecopas.repository.ProductoRepository;
 
 @Service
 public class ProductoService {
@@ -24,6 +25,19 @@ public class ProductoService {
     }
 
     public List<Producto> buscarPorTipo(String tipo) {
-    return repository.buscarPorTipo(tipo);
-}
+        return repository.buscarPorTipo(tipo);
+    }
+
+    public Double obtenerResumenPrecios() {
+        Double total = repository.obtenerSumaPrecios();
+        return (total != null) ? total : 0.0;
+    }
+
+    public List<Producto> filtrarProductos(String tipo, String marca) {
+        return repository.buscarConFiltros(tipo, marca);
+    }
+
+    public List<Producto> obtenerProductosPaginados(int size, int page) {
+        return repository.listarPaginado(size, page);
+    }
 }

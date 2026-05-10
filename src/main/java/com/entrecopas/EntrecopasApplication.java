@@ -13,8 +13,7 @@ public class EntrecopasApplication {
 	}
 
 	@Bean
-CommandLineRunner test() {
-    return args -> System.out.println("SPRING DETECTA TODO");
-}
-
+	CommandLineRunner test() {
+		return args -> System.out.println("spring corrio :)");
+	}
 }

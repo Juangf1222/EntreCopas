@@ -1,10 +1,16 @@
 package com.entrecopas.controller;
 
+import java.util.List;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.entrecopas.model.Producto;
 import com.entrecopas.service.ProductoService;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/productos")
@@ -16,17 +22,36 @@ public class ProductoController {
         this.service = service;
     }
 
-    @GetMapping
-    public List<Producto> listar() {
-        return service.listar();
-    }
-
     @PostMapping
     public void guardar(@RequestBody Producto producto) {
         service.guardar(producto);
     }
 
+    @GetMapping("/buscar")
+    public List<Producto> buscar(
+            @RequestParam(required = false) String tipo,
+            @RequestParam(required = false) String marca) {
+        return service.filtrarProductos(tipo, marca);
+    }
+
     @GetMapping(params = "tipo")public List<Producto> buscarPorTipo(@RequestParam String tipo) {
         return service.buscarPorTipo(tipo);
-}
+    }
+
+    @GetMapping("/resumen-precios")
+    public Double verResumen() {
+        return service.obtenerResumenPrecios();
+    }
+
+    @GetMapping("/paginado")
+    public List<Producto> listarPaginado(
+            @RequestParam(defaultValue = "10") int size, 
+            @RequestParam(defaultValue = "0") int page) {
+        return service.obtenerProductosPaginados(size, page);
+    }
+
+    @GetMapping
+    public List<Producto> listar() {
+        return service.listar();
+    }
 }
