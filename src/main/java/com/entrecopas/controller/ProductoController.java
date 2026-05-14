@@ -2,6 +2,7 @@ package com.entrecopas.controller;
 
 import java.util.List;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,6 +15,7 @@ import com.entrecopas.service.ProductoService;
 
 @RestController
 @RequestMapping("/productos")
+@CrossOrigin(origins = "*")
 public class ProductoController {
 
     private final ProductoService service;
