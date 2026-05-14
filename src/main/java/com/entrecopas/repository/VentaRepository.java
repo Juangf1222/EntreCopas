@@ -36,7 +36,6 @@ public class VentaRepository {
     }
 
     public List<Venta> buscarVentasPorCliente(int idCliente) {
-        // Usamos un JOIN para verificar la relación, aunque filtremos por el ID del cliente
         String sql = """
                 SELECT v.* 
                 FROM venta v

@@ -35,7 +35,6 @@ public class ClienteService {
         try {
             return repository.buscarPorId(id);
         } catch (EmptyResultDataAccessException e) {
-            // Al atrapar esta excepción específica, podemos enviar el 404
             throw new ResponseStatusException(
                 HttpStatus.NOT_FOUND, "El cliente con ID " + id + " no existe."
             );
