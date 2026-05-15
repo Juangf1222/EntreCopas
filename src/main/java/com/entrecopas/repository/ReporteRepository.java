@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.entrecopas.model.ReporteProducto;
+import com.entrecopas.model.VistaDetalleVenta;
 
 @Repository
 public class ReporteRepository {
@@ -28,6 +29,24 @@ public class ReporteRepository {
             r.setIngresosTotales(rs.getDouble("ingresos_totales"));
             r.setVecesVendido(rs.getInt("veces_vendido"));
             return r;
+        });
+    }
+
+    public List<VistaDetalleVenta> obtenerDetalleVentas() {
+        String sql = "SELECT * FROM vista_detalle_ventas";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            VistaDetalleVenta v = new VistaDetalleVenta();
+            v.setIdVenta(rs.getInt("id_venta"));
+            v.setFecha(rs.getDate("fecha"));
+            v.setCliente(rs.getString("cliente"));
+            v.setUsuario(rs.getString("usuario"));
+            v.setProducto(rs.getString("producto"));
+            v.setTipo(rs.getString("tipo"));
+            v.setCantidad(rs.getInt("cantidad"));
+            v.setPrecioUnitario(rs.getDouble("precio_unitario"));
+            v.setSubtotal(rs.getDouble("subtotal"));
+            return v;
         });
     }
 }

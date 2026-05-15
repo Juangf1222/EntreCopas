@@ -37,7 +37,7 @@ public class VentaRepository {
 
     public List<Venta> buscarVentasPorCliente(int idCliente) {
         String sql = """
-                SELECT v.* 
+                SELECT v.*
                 FROM venta v
                 INNER JOIN cliente c ON v.id_cliente = c.id
                 WHERE c.id = ?
@@ -60,11 +60,11 @@ public class VentaRepository {
                 INSERT INTO venta (fecha, total, metodo_pago, id_cliente, id_usuario)
                 VALUES (?::date, ?, ?, ?, ?)
                 """;
-        jdbcTemplate.update(sql, 
-            venta.getFecha(), 
-            venta.getTotal(), 
-            venta.getMetodoPago(), 
-            venta.getIdCliente(), 
+        jdbcTemplate.update(sql,
+            venta.getFecha(),
+            venta.getTotal(),
+            venta.getMetodoPago(),
+            venta.getIdCliente(),
             venta.getIdUsuario()
         );
     }

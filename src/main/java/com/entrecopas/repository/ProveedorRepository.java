@@ -31,8 +31,8 @@ public class ProveedorRepository {
 
     public void guardar(Proveedor proveedor) {
         String sql = "INSERT INTO proveedor (nombre, telefono, direccion, correo) VALUES (?, ?, ?, ?)";
-        jdbcTemplate.update(sql, proveedor.getNombre(), proveedor.getTelefono(), 
-                          proveedor.getDireccion(), proveedor.getCorreo());
+        jdbcTemplate.update(sql, proveedor.getNombre(), proveedor.getTelefono(),
+                        proveedor.getDireccion(), proveedor.getCorreo());
     }
 
     public void eliminar(int id) {
