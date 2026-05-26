@@ -68,4 +68,9 @@ public class ProductoController {
     public void reponer(@PathVariable int id) {
         service.reponerStock(id);
     }
+
+    @GetMapping("/precio-superior-promedio")
+    public List<Producto> productosMasCarosQuePromedio() {
+        return service.productosMasCarosQuePromedio();
+    }
 }

@@ -23,3 +23,27 @@ pnpm-debug.log*
 *.iml
 .DS_Store
 Thumbs.db
+
+# Dependencias Node
+node_modules/
+
+# Build frontend
+dist/
+
+# Archivos de entorno
+.env
+
+# Logs
+npm-debug.log*
+
+# VS Code
+.vscode/
+
+# IntelliJ
+.idea/
+
+# Archivos del sistema
+.DS_Store
+
+# Maven target
+target/

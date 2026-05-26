@@ -48,4 +48,8 @@ public class ProductoService {
     public void reponerStock(int id) {
         repository.reponerStock(id);
     }
+
+    public List<Producto> productosMasCarosQuePromedio() {
+        return repository.productosMasCarosQuePromedio();
+}
 }

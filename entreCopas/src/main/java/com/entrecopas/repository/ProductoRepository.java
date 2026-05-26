@@ -157,4 +157,28 @@ public class ProductoRepository {
         WHERE id = ?""";
         jdbcTemplate.update(sql, id);
     }
+
+    public List<Producto> productosMasCarosQuePromedio() {
+
+    String sql = """
+        SELECT *
+        FROM producto
+        WHERE precio > (
+            SELECT AVG(precio)
+            FROM producto
+        )
+    """;
+
+    return jdbcTemplate.query(sql, (rs, rowNum) -> {
+        Producto p = new Producto();
+        p.setId(rs.getInt("id"));
+        p.setNombre(rs.getString("nombre"));
+        p.setTipo(rs.getString("tipo"));
+        p.setPrecio(rs.getDouble("precio"));
+        p.setCantidadStock(rs.getInt("cantidad_stock"));
+        p.setMarca(rs.getString("marca"));
+        
+        return p;
+    });
+}
 }
