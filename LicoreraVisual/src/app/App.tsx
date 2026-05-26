@@ -267,61 +267,154 @@ function DashboardScreen({ role }: { role: Role }) {
   const ventas = useApiList<DetalleVenta>("/reportes/detalle-ventas");
   const productosVendidos = useApiList<ReporteProducto>("/reportes/productos-vendidos");
   const clientes = useApiList<Cliente>("/clientes");
-  const lowStock = productos.data.filter((producto) => producto.cantidadStock <= 5);
-  const totalVentas = ventas.data.reduce((sum, venta) => sum + venta.subtotal, 0);
+
+  const [loadingReponer, setLoadingReponer] = useState<number | null>(null);
+
+  const lowStock = productos.data.filter((producto: Producto) => producto.cantidadStock < 10);
+
+  const totalVentas = ventas.data.reduce((sum: number, venta: DetalleVenta) => sum + venta.subtotal, 0);
+
   const topProduct = productosVendidos.data[0];
+
+  async function reponerProducto(producto: Producto) {
+    try {
+      setLoadingReponer(producto.id);
+
+      await api(`/productos/reponer/${producto.id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          ...producto,
+          cantidadStock: producto.cantidadStock + 20,
+        }),
+      });
+
+      await productos.load();
+    } catch (error) {
+      alert("No se pudo reponer el producto");
+    } finally {
+      setLoadingReponer(null);
+    }
+  }
 
   return (
     <Page>
       <PageHeader
         eyebrow={roleLabel(role)}
         title={role === "cashier" ? "Caja lista para vender" : "Panel de control"}
-        subtitle={role === "supervisor" ? "Inventario, proveedores y ventas en un solo lugar." : "Resumen rapido para trabajar sin perderte entre tablas."}
+        subtitle={
+          role === "supervisor"
+            ? "Inventario, proveedores y ventas en un solo lugar."
+            : "Resumen rapido para trabajar sin perderte entre tablas."
+        }
       />
-      <StatusLine loading={productos.loading || ventas.loading || clientes.loading} error={productos.error || ventas.error || clientes.error} />
+
+      <StatusLine
+        loading={productos.loading || ventas.loading || clientes.loading}
+        error={productos.error || ventas.error || clientes.error}
+      />
+
       <div className="metrics-grid">
         <Metric label="Ventas reportadas" value={money(totalVentas)} tone="purple" />
         <Metric label="Productos" value={String(productos.data.length)} tone="teal" />
-        <Metric label="Stock bajo" value={String(lowStock.length)} tone={lowStock.length ? "red" : "green"} />
+        <Metric
+          label="Stock bajo"
+          value={String(lowStock.length)}
+          tone={lowStock.length ? "red" : "green"}
+        />
         <Metric label="Clientes" value={String(clientes.data.length)} tone="blue" />
       </div>
+
       <div className="dashboard-grid">
         <section className="panel">
-          <PanelTitle icon={<AlertTriangle size={16} />} title="Productos por reponer" />
+          <PanelTitle
+            icon={<AlertTriangle size={16} />}
+            title="Productos por reponer"
+          />
+
           <div className="list-stack">
             {lowStock.slice(0, 6).map((producto) => (
               <div className="row-card" key={producto.id}>
                 <div>
                   <strong>{producto.nombre}</strong>
-                  <small>{producto.marca} · {producto.tipo}</small>
+
+                  <small>
+                    {producto.marca} · {producto.tipo}
+                  </small>
                 </div>
-                <StockBadge stock={producto.cantidadStock} />
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "10px",
+                    alignItems: "center",
+                  }}
+                >
+                  <StockBadge stock={producto.cantidadStock} />
+
+                  <button
+                    className="primary-button compact"
+                    onClick={() => reponerProducto(producto)}
+                    disabled={loadingReponer === producto.id}
+                    type="button"
+                  >
+                    {loadingReponer === producto.id
+                      ? "Reponiendo..."
+                      : "Reponer"}
+                  </button>
+                </div>
               </div>
             ))}
-            {!lowStock.length && <EmptyText text="No hay productos con stock critico." />}
+
+            {!lowStock.length && (
+              <EmptyText text="No hay productos con stock critico." />
+            )}
           </div>
         </section>
+
         <section className="panel">
-          <PanelTitle icon={<BarChart3 size={16} />} title="Ventas recientes" />
+          <PanelTitle
+            icon={<BarChart3 size={16} />}
+            title="Ventas recientes"
+          />
+
           <div className="list-stack">
             {ventas.data.slice(0, 6).map((venta) => (
-              <div className="row-card" key={`${venta.idVenta}-${venta.producto}`}>
+              <div
+                className="row-card"
+                key={`${venta.idVenta}-${venta.producto}`}
+              >
                 <div>
                   <strong>{venta.producto}</strong>
-                  <small>{venta.cliente} · {new Date(venta.fecha).toLocaleDateString("es-CO")}</small>
+
+                  <small>
+                    {venta.cliente} ·{" "}
+                    {new Date(venta.fecha).toLocaleDateString("es-CO")}
+                  </small>
                 </div>
-                <span className="money-pill">{money(venta.subtotal)}</span>
+
+                <span className="money-pill">
+                  {money(venta.subtotal)}
+                </span>
               </div>
             ))}
-            {!ventas.data.length && <EmptyText text="No hay ventas para mostrar todavia." />}
+
+            {!ventas.data.length && (
+              <EmptyText text="No hay ventas para mostrar todavia." />
+            )}
           </div>
         </section>
       </div>
+
       {topProduct && (
         <section className="panel highlight-panel">
-          <PanelTitle icon={<Package size={16} />} title="Producto lider" />
+          <PanelTitle
+            icon={<Package size={16} />}
+            title="Producto lider"
+          />
+
           <p>
-            {topProduct.producto} tiene {topProduct.totalVendido} unidades vendidas y {money(topProduct.ingresosTotales)} en ingresos.
+            {topProduct.producto} tiene {topProduct.totalVendido} unidades
+            vendidas y {money(topProduct.ingresosTotales)} en ingresos.
           </p>
         </section>
       )}
@@ -850,8 +943,8 @@ function PanelTitle({ icon, title }: { icon: React.ReactNode; title: string }) {
 }
 
 function StockBadge({ stock }: { stock: number }) {
-  if (stock <= 5) return <span className="badge red">Reponer · {stock}</span>;
-  if (stock <= 12) return <span className="badge amber">Medio · {stock}</span>;
+  if (stock < 10) return <span className="badge red">Reponer · {stock}</span>;
+  if (stock <= 15) return <span className="badge amber">Medio · {stock}</span>;
   return <span className="badge green">Disponible · {stock}</span>;
 }
 

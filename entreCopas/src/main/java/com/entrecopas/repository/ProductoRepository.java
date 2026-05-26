@@ -117,8 +117,44 @@ public class ProductoRepository {
         }, size, offset);
     }
 
+    public Producto buscarPorId(int id) {
+        String sql = "SELECT * FROM producto WHERE id = ?";
+        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
+            
+            Producto p = new Producto();
+             p.setId(rs.getInt("id"));
+             p.setNombre(rs.getString("nombre"));
+             p.setTipo(rs.getString("tipo"));
+             p.setPrecio(rs.getDouble("precio"));
+             p.setCantidadStock(rs.getInt("cantidad_stock"));
+             p.setMarca(rs.getString("marca"));
+             return p;
+            }, id);
+        }
+
     public void reducirStock(int idProducto, int cantidad) {
         String sql = "UPDATE producto SET cantidad_stock = cantidad_stock - ? WHERE id = ?";
         jdbcTemplate.update(sql, cantidad, idProducto);
+    }
+
+    public List<Producto> obtenerStockBajo() {
+        String sql = "SELECT * FROM producto WHERE cantidad_stock < 10";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Producto p = new Producto();
+            p.setId(rs.getInt("id"));
+            p.setNombre(rs.getString("nombre"));
+            p.setTipo(rs.getString("tipo"));
+            p.setPrecio(rs.getDouble("precio"));
+            p.setCantidadStock(rs.getInt("cantidad_stock"));
+            p.setMarca(rs.getString("marca"));
+             return p;
+            });
+        }
+
+    public void reponerStock(int id) {
+        String sql = """
+        UPDATE producto SET cantidad_stock = cantidad_stock + 50
+        WHERE id = ?""";
+        jdbcTemplate.update(sql, id);
     }
 }

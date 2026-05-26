@@ -55,17 +55,22 @@ public class VentaRepository {
         }, idCliente);
     }
 
-    public void guardar(Venta venta) {
+    public int guardar(Venta venta) {
         String sql = """
                 INSERT INTO venta (fecha, total, metodo_pago, id_cliente, id_usuario)
                 VALUES (?::date, ?, ?, ?, ?)
+                RETURNING id;
                 """;
-        jdbcTemplate.update(sql,
+        Integer idGenerado = jdbcTemplate.queryForObject(
+            sql,
+            Integer.class,
             venta.getFecha(),
             venta.getTotal(),
             venta.getMetodoPago(),
             venta.getIdCliente(),
             venta.getIdUsuario()
         );
+
+        return idGenerado;
     }
 }

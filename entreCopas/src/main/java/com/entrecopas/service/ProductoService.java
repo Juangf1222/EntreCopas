@@ -40,4 +40,12 @@ public class ProductoService {
     public List<Producto> obtenerProductosPaginados(int size, int page) {
         return repository.listarPaginado(size, page);
     }
+
+    public List<Producto> obtenerStockBajo() {
+        return repository.obtenerStockBajo();
+    }
+    
+    public void reponerStock(int id) {
+        repository.reponerStock(id);
+    }
 }

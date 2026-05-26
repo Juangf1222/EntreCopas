@@ -265,3 +265,25 @@ JOIN pg_roles r
     ON m.roleid = r.oid
 JOIN pg_roles u 
     ON m.member = u.oid;
+
+CREATE OR REPLACE VIEW vista_detalle_ventas AS
+SELECT
+    v.id AS id_venta,
+    v.fecha,
+    c.nombre AS cliente,
+    u.nombre AS usuario,
+    p.nombre AS producto,
+    p.tipo,
+    dv.cantidad,
+    dv.precio_unitario,
+    (dv.cantidad * dv.precio_unitario) AS subtotal
+FROM venta v
+INNER JOIN cliente c
+    ON v.id_cliente = c.id
+INNER JOIN usuario u
+    ON v.id_usuario = u.id
+INNER JOIN detalle_venta dv
+    ON v.id = dv.id_venta
+INNER JOIN producto p
+    ON dv.id_producto = p.id
+ORDER BY v.fecha DESC, v.id DESC;
