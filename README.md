@@ -32,7 +32,7 @@ Antes de ejecutar el proyecto es necesario tener instalado:
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/Juangf1222/EntreCopas
+git clone https://github.com/Juangf1222/EntreCopas.git
 ```
 
 ---
@@ -71,7 +71,7 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 
 ---
 
-### 5. Ejecutar el proyecto
+### 5. Ejecutar el backend
 
 Con Maven:
 
@@ -83,6 +83,44 @@ o ejecutando la clase:
 
 ```text
 EntrecopasApplication.java
+```
+
+---
+---
+
+### 6. Frontend
+
+El sistema cuenta con una interfaz gráfica desarrollada con:
+
+- React
+- TypeScript
+- Vite
+- TailwindCSS
+
+### Ejecutar frontend
+
+Entrar a la carpeta:
+
+```bash
+cd LicoreraVisual
+```
+
+Instalar dependencias:
+
+```bash
+npm install
+```
+
+Ejecutar:
+
+```bash
+npm run dev
+```
+
+La aplicación estará disponible en:
+
+```text
+http://localhost:5173
 ```
 
 ---
@@ -115,18 +153,36 @@ https://drive.google.com/file/d/1KJzKGYkgcWEpdgBHt4wBQgCzS5N25Qmg/view?usp=shari
 
 ---
 
-## Requerimientos funcionales
+## Funcionalidades implementadas
 
-El sistema implementa las siguientes funcionalidades principales:
+- Registro de clientes
+- Registro de productos
+- Registro de proveedores
+- Registro de usuarios
+- Gestión de inventario
+- Reducción automática de stock al vender
+- Reposición automática de stock
+- Reportes de ventas
+- Productos más vendidos
+- Vista de ventas recientes
+- Productos con stock bajo
+- Filtros por tipo y marca
+- Paginación de productos
 
-- Gestión de clientes
-- Gestión de productos
-- Registro de ventas
-- Administración de usuarios
-- Administración de proveedores
-- Consulta de reportes y resumen de ventas
-- Filtrado de productos por tipo
-- Consulta de ventas asociadas a clientes
+---
+
+## Características avanzadas SQL
+
+El sistema implementa:
+
+- Vistas SQL
+- Funciones almacenadas
+- Consultas con HAVING
+- Roles y permisos
+- Restricciones CHECK
+- Llaves foráneas
+- Consultas JOIN
+- Seguridad por roles
 
 ---
 
@@ -158,3 +214,13 @@ controller
 ```
 
 ---
+## Pruebas realizadas
+
+Se realizaron pruebas:
+
+- Funcionales
+- Unitarias
+- Validación de endpoints
+- Inserción de ventas
+- Actualización de inventario
+- Consultas SQL
