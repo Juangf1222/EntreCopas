@@ -2,7 +2,10 @@ package com.entrecopas.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,8 +30,9 @@ public class ProductoController {
     }
 
     @PostMapping
-    public void guardar(@RequestBody Producto producto) {
+    public ResponseEntity<Void> guardar(@RequestBody Producto producto) {
         service.guardar(producto);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping("/buscar")
@@ -57,6 +61,24 @@ public class ProductoController {
     @GetMapping
     public List<Producto> listar() {
         return service.listar();
+    }
+
+    @GetMapping("/{id}")
+    public Producto buscarPorId(@PathVariable int id) {
+        return service.buscarPorId(id);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> actualizar(@PathVariable int id, @RequestBody Producto producto) {
+        producto.setId(id);
+        service.actualizar(producto);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable int id) {
+        service.eliminar(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/stock-bajo")

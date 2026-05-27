@@ -7,6 +7,7 @@ import {
   LogOut,
   Mail,
   Package,
+  Pencil,
   Phone,
   Plus,
   RefreshCw,
@@ -479,16 +480,42 @@ function ClientsScreen() {
   const clientes = useApiList<Cliente>("/clientes");
   const feedback = useMessage();
   const [open, setOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState<Cliente | null>(null);
   const [form, setForm] = useState({ nombre: "", documento: "", telefono: "", correo: "" });
+
+  const resetForm = () => {
+    setForm({ nombre: "", documento: "", telefono: "", correo: "" });
+    setEditingClient(null);
+  };
+
+  const openCreate = () => {
+    resetForm();
+    setOpen(true);
+  };
+
+  const openEdit = (cliente: Cliente) => {
+    setEditingClient(cliente);
+    setForm({
+      nombre: cliente.nombre,
+      documento: cliente.documento,
+      telefono: cliente.telefono ?? "",
+      correo: cliente.correo ?? "",
+    });
+    setOpen(true);
+  };
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     await feedback.run(async () => {
-      await api<void>("/clientes", { method: "POST", body: JSON.stringify(form) });
-      setForm({ nombre: "", documento: "", telefono: "", correo: "" });
+      if (editingClient) {
+        await api<void>(`/clientes/${editingClient.id}`, { method: "PUT", body: JSON.stringify(form) });
+      } else {
+        await api<void>("/clientes", { method: "POST", body: JSON.stringify(form) });
+      }
+      resetForm();
       setOpen(false);
       await clientes.load();
-    }, "Cliente registrado correctamente.");
+    }, editingClient ? "Cliente actualizado correctamente." : "Cliente registrado correctamente.");
   };
 
   const remove = async (id: number) => {
@@ -501,7 +528,7 @@ function ClientsScreen() {
   return (
     <Page>
       <PageHeader eyebrow="Clientes" title="Base de clientes" subtitle="Los clientes quedan listos para seleccionarlos al registrar una venta.">
-        <button className="primary-button compact" onClick={() => setOpen(true)} type="button">
+        <button className="primary-button compact" onClick={openCreate} type="button">
           <Plus size={16} />
           Nuevo cliente
         </button>
@@ -515,6 +542,9 @@ function ClientsScreen() {
             <Cell>{cliente.telefono}</Cell>
             <Cell>{cliente.correo}</Cell>
             <ActionCell>
+              <button className="icon-link" onClick={() => openEdit(cliente)} type="button" title="Editar cliente">
+                <Pencil size={15} />
+              </button>
               <button className="icon-danger" onClick={() => remove(cliente.id)} type="button" title="Eliminar cliente">
                 <Trash2 size={15} />
               </button>
@@ -522,13 +552,13 @@ function ClientsScreen() {
           </tr>
         ))}
       </DataTable>
-      <Modal open={open} title="Nuevo cliente" onClose={() => setOpen(false)}>
+      <Modal open={open} title={editingClient ? "Editar cliente" : "Nuevo cliente"} onClose={() => { setOpen(false); resetForm(); }}>
         <form className="form-grid" onSubmit={submit}>
           <TextInput label="Nombre" value={form.nombre} onChange={(nombre) => setForm({ ...form, nombre })} required />
           <TextInput label="Documento" value={form.documento} onChange={(documento) => setForm({ ...form, documento })} required />
           <TextInput label="Telefono" value={form.telefono} onChange={(telefono) => setForm({ ...form, telefono })} />
           <TextInput label="Correo" value={form.correo} onChange={(correo) => setForm({ ...form, correo })} required type="email" />
-          <button className="primary-button full-span" type="submit">Guardar cliente</button>
+          <button className="primary-button full-span" type="submit">{editingClient ? "Actualizar cliente" : "Guardar cliente"}</button>
         </form>
       </Modal>
     </Page>
@@ -599,41 +629,107 @@ function ProvidersScreen() {
 
 function ProductsScreen() {
   const productos = useApiList<Producto>("/productos");
+  const stockBajo = useApiList<Producto>("/productos/stock-bajo");
   const feedback = useMessage();
   const [open, setOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Producto | null>(null);
   const [query, setQuery] = useState("");
-  const [form, setForm] = useState({ nombre: "", marca: "", tipo: "", precio: "", cantidadStock: "" });
+  const [form, setForm] = useState({ nombre: "", marca: "", tipo: "alcoholico", precio: "", cantidadStock: "" });
   const filtered = productos.data.filter((producto) =>
     `${producto.nombre} ${producto.marca} ${producto.tipo}`.toLowerCase().includes(query.toLowerCase())
   );
 
+  const resetForm = () => {
+    setForm({ nombre: "", marca: "", tipo: "alcoholico", precio: "", cantidadStock: "" });
+    setEditingProduct(null);
+  };
+
+  const reloadProducts = async () => {
+    await productos.load();
+    await stockBajo.load();
+  };
+
+  const openCreate = () => {
+    resetForm();
+    setOpen(true);
+  };
+
+  const openEdit = (producto: Producto) => {
+    setEditingProduct(producto);
+    setForm({
+      nombre: producto.nombre,
+      marca: producto.marca ?? "",
+      tipo: producto.tipo,
+      precio: String(producto.precio),
+      cantidadStock: String(producto.cantidadStock),
+    });
+    setOpen(true);
+  };
+
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     await feedback.run(async () => {
-      await api<void>("/productos", {
-        method: "POST",
-        body: JSON.stringify({ ...form, precio: Number(form.precio), cantidadStock: Number(form.cantidadStock) }),
+      const payload = { ...form, precio: Number(form.precio), cantidadStock: Number(form.cantidadStock) };
+      await api<void>(editingProduct ? `/productos/${editingProduct.id}` : "/productos", {
+        method: editingProduct ? "PUT" : "POST",
+        body: JSON.stringify(payload),
       });
-      setForm({ nombre: "", marca: "", tipo: "", precio: "", cantidadStock: "" });
+      resetForm();
       setOpen(false);
-      await productos.load();
-    }, "Producto agregado al inventario.");
+      await reloadProducts();
+    }, editingProduct ? "Producto actualizado correctamente." : "Producto agregado al inventario.");
+  };
+
+  const remove = async (id: number) => {
+    await feedback.run(async () => {
+      await api<void>(`/productos/${id}`, { method: "DELETE" });
+      await reloadProducts();
+    }, "Producto eliminado.");
+  };
+
+  const replenish = async (id: number) => {
+    await feedback.run(async () => {
+      await api<void>(`/productos/reponer/${id}`, { method: "PUT" });
+      await reloadProducts();
+    }, "Stock repuesto con 50 unidades.");
   };
 
   return (
     <Page>
-      <PageHeader eyebrow="Inventario" title="Productos" subtitle="Stock visible y estado de reposicion para el supervisor.">
-        <button className="primary-button compact" onClick={() => setOpen(true)} type="button">
+      <PageHeader eyebrow="Inventario" title="Productos" subtitle="Stock visible, CRUD completo y reposicion para mostrar en la demo.">
+        <button className="primary-button compact" onClick={openCreate} type="button">
           <Plus size={16} />
           Nuevo producto
         </button>
       </PageHeader>
-      <StatusLine loading={productos.loading} error={productos.error || feedback.error} message={feedback.message} onRetry={productos.load} />
+      <StatusLine
+        loading={productos.loading || stockBajo.loading}
+        error={productos.error || stockBajo.error || feedback.error}
+        message={feedback.message}
+        onRetry={reloadProducts}
+      />
+      <section className="section-block">
+        <PanelTitle icon={<AlertTriangle size={16} />} title="Stock bajo desde endpoint /productos/stock-bajo" />
+        <div className="low-stock-grid">
+          {stockBajo.data.map((producto) => (
+            <article className="row-card" key={producto.id}>
+              <div>
+                <strong>{producto.nombre}</strong>
+                <small>{producto.marca} · {producto.tipo}</small>
+              </div>
+              <button className="secondary-button" onClick={() => replenish(producto.id)} type="button">
+                Reponer
+              </button>
+            </article>
+          ))}
+          {!stockBajo.data.length && <EmptyText text="No hay productos con stock menor a 10." />}
+        </div>
+      </section>
       <div className="toolbar">
         <Search size={16} />
         <input placeholder="Buscar por nombre, marca o tipo" value={query} onChange={(event) => setQuery(event.target.value)} />
       </div>
-      <DataTable headers={["Nombre", "Marca", "Tipo", "Precio", "Stock", "Estado"]}>
+      <DataTable headers={["Nombre", "Marca", "Tipo", "Precio", "Stock", "Estado", "Acciones"]}>
         {filtered.map((producto) => (
           <tr key={producto.id}>
             <Cell strong>{producto.nombre}</Cell>
@@ -642,17 +738,33 @@ function ProductsScreen() {
             <Cell mono strong>{money(producto.precio)}</Cell>
             <Cell>{producto.cantidadStock}</Cell>
             <Cell><StockBadge stock={producto.cantidadStock} /></Cell>
+            <ActionCell>
+              <button className="icon-link" onClick={() => openEdit(producto)} type="button" title="Editar producto">
+                <Pencil size={15} />
+              </button>
+              <button className="icon-link" onClick={() => replenish(producto.id)} type="button" title="Reponer stock">
+                <RefreshCw size={15} />
+              </button>
+              <button className="icon-danger" onClick={() => remove(producto.id)} type="button" title="Eliminar producto">
+                <Trash2 size={15} />
+              </button>
+            </ActionCell>
           </tr>
         ))}
       </DataTable>
-      <Modal open={open} title="Nuevo producto" onClose={() => setOpen(false)}>
+      <Modal open={open} title={editingProduct ? "Editar producto" : "Nuevo producto"} onClose={() => { setOpen(false); resetForm(); }}>
         <form className="form-grid" onSubmit={submit}>
           <TextInput label="Nombre" value={form.nombre} onChange={(nombre) => setForm({ ...form, nombre })} required />
           <TextInput label="Marca" value={form.marca} onChange={(marca) => setForm({ ...form, marca })} required />
-          <TextInput label="Tipo" value={form.tipo} onChange={(tipo) => setForm({ ...form, tipo })} required />
+          <Field label="Tipo">
+            <select className="field" value={form.tipo} onChange={(event) => setForm({ ...form, tipo: event.target.value })}>
+              <option value="alcoholico">alcoholico</option>
+              <option value="no alcoholico">no alcoholico</option>
+            </select>
+          </Field>
           <TextInput label="Precio" value={form.precio} onChange={(precio) => setForm({ ...form, precio })} required type="number" />
           <TextInput label="Stock" value={form.cantidadStock} onChange={(cantidadStock) => setForm({ ...form, cantidadStock })} required type="number" />
-          <button className="primary-button full-span" type="submit">Guardar producto</button>
+          <button className="primary-button full-span" type="submit">{editingProduct ? "Actualizar producto" : "Guardar producto"}</button>
         </form>
       </Modal>
     </Page>
@@ -662,17 +774,58 @@ function ProductsScreen() {
 function ReportsScreen() {
   const sales = useApiList<DetalleVenta>("/reportes/detalle-ventas");
   const products = useApiList<ReporteProducto>("/reportes/productos-vendidos");
+  const expensiveProducts = useApiList<Producto>("/productos/precio-superior-promedio");
+  const lowStock = useApiList<Producto>("/productos/stock-bajo");
   const total = sales.data.reduce((sum, venta) => sum + venta.subtotal, 0);
+  const reloadReports = () => {
+    void sales.load();
+    void products.load();
+    void expensiveProducts.load();
+    void lowStock.load();
+  };
 
   return (
     <Page>
       <PageHeader eyebrow="Reportes" title="Ventas y productos" subtitle="Vista para supervisor y administrador con datos calculados desde el backend." />
-      <StatusLine loading={sales.loading || products.loading} error={sales.error || products.error} onRetry={() => { void sales.load(); void products.load(); }} />
-      <div className="metrics-grid three">
+      <StatusLine
+        loading={sales.loading || products.loading || expensiveProducts.loading || lowStock.loading}
+        error={sales.error || products.error || expensiveProducts.error || lowStock.error}
+        onRetry={reloadReports}
+      />
+      <div className="metrics-grid">
         <Metric label="Transacciones" value={String(sales.data.length)} tone="blue" />
         <Metric label="Ingresos" value={money(total)} tone="purple" />
         <Metric label="Productos vendidos" value={String(products.data.length)} tone="teal" />
+        <Metric label="Precio sobre promedio" value={String(expensiveProducts.data.length)} tone="green" />
       </div>
+      <section className="section-block">
+        <PanelTitle icon={<BarChart3 size={16} />} title="Subconsulta: productos con precio superior al promedio" />
+        <DataTable headers={["Producto", "Marca", "Tipo", "Precio", "Stock"]}>
+          {expensiveProducts.data.map((producto) => (
+            <tr key={producto.id}>
+              <Cell strong>{producto.nombre}</Cell>
+              <Cell>{producto.marca}</Cell>
+              <Cell>{producto.tipo}</Cell>
+              <Cell mono strong>{money(producto.precio)}</Cell>
+              <Cell>{producto.cantidadStock}</Cell>
+            </tr>
+          ))}
+        </DataTable>
+      </section>
+      <section className="section-block">
+        <PanelTitle icon={<AlertTriangle size={16} />} title="Endpoint: productos con stock bajo" />
+        <DataTable headers={["Producto", "Marca", "Tipo", "Precio", "Stock"]}>
+          {lowStock.data.map((producto) => (
+            <tr key={producto.id}>
+              <Cell strong>{producto.nombre}</Cell>
+              <Cell>{producto.marca}</Cell>
+              <Cell>{producto.tipo}</Cell>
+              <Cell mono strong>{money(producto.precio)}</Cell>
+              <Cell><StockBadge stock={producto.cantidadStock} /></Cell>
+            </tr>
+          ))}
+        </DataTable>
+      </section>
       <section className="section-block">
         <PanelTitle icon={<Package size={16} />} title="Productos mas vendidos" />
         <DataTable headers={["Producto", "Tipo", "Unidades", "Veces", "Ingresos"]}>
@@ -1135,6 +1288,17 @@ function AppStyles() {
       .primary-button:hover { background: #7c3aed; }
       .primary-button.compact { white-space: nowrap; }
       .primary-button.full-span { grid-column: 1 / -1; }
+      .secondary-button {
+        min-height: 34px;
+        border: 1px solid rgba(20, 184, 166, 0.28);
+        border-radius: 8px;
+        background: rgba(20, 184, 166, 0.12);
+        color: #99f6e4;
+        padding: 0 12px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      .secondary-button:hover { background: rgba(20, 184, 166, 0.2); }
       .metrics-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
       .metrics-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .metric, .panel, .table-card, .receipt-panel {
@@ -1167,6 +1331,7 @@ function AppStyles() {
       }
       .row-card strong, .row-card small { display: block; }
       .row-card small { margin-top: 3px; color: var(--muted); }
+      .low-stock-grid { display: grid; gap: 10px; margin-bottom: 16px; }
       .money-pill { color: #a7f3d0; font-weight: 800; white-space: nowrap; }
       .highlight-panel { margin-top: 16px; }
       .highlight-panel p { margin: 0; color: var(--muted); }

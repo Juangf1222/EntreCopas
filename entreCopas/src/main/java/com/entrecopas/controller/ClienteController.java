@@ -3,6 +3,7 @@ package com.entrecopas.controller;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,7 +36,7 @@ public class ClienteController {
     }
 
     @PostMapping
-    public void guardar(@RequestBody Cliente cliente) {
+    public ResponseEntity<Void> guardar(@RequestBody Cliente cliente) {
         
         if (cliente.getNombre() == null || cliente.getNombre().trim().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nombre es obligatorio");
@@ -50,6 +51,7 @@ public class ClienteController {
         }
 
         service.guardar(cliente);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping("/{id}")
@@ -58,14 +60,16 @@ public class ClienteController {
     }
 
     @PutMapping("/{id}")
-    public void actualizar(@PathVariable int id,@RequestBody Cliente cliente) {
+    public ResponseEntity<Void> actualizar(@PathVariable int id,@RequestBody Cliente cliente) {
         cliente.setId(id);
         service.actualizar(cliente);
+        return ResponseEntity.ok().build();
 }
 
     @DeleteMapping("/{id}")
-    public void eliminar(@PathVariable int id) {
+    public ResponseEntity<Void> eliminar(@PathVariable int id) {
         service.eliminar(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/ventas")

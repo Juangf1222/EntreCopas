@@ -122,15 +122,38 @@ public class ProductoRepository {
         return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
             
             Producto p = new Producto();
-             p.setId(rs.getInt("id"));
-             p.setNombre(rs.getString("nombre"));
-             p.setTipo(rs.getString("tipo"));
-             p.setPrecio(rs.getDouble("precio"));
-             p.setCantidadStock(rs.getInt("cantidad_stock"));
-             p.setMarca(rs.getString("marca"));
-             return p;
-            }, id);
-        }
+            p.setId(rs.getInt("id"));
+            p.setNombre(rs.getString("nombre"));
+            p.setTipo(rs.getString("tipo"));
+            p.setPrecio(rs.getDouble("precio"));
+            p.setCantidadStock(rs.getInt("cantidad_stock"));
+            p.setMarca(rs.getString("marca"));
+            return p;
+        }, id);
+    }
+
+    public void actualizar(Producto producto) {
+        String sql = """
+                UPDATE producto
+                SET nombre = ?, tipo = ?, precio = ?, cantidad_stock = ?, marca = ?
+                WHERE id = ?
+                """;
+
+        jdbcTemplate.update(
+                sql,
+                producto.getNombre(),
+                producto.getTipo(),
+                producto.getPrecio(),
+                producto.getCantidadStock(),
+                producto.getMarca(),
+                producto.getId()
+        );
+    }
+
+    public void eliminar(int id) {
+        String sql = "DELETE FROM producto WHERE id = ?";
+        jdbcTemplate.update(sql, id);
+    }
 
     public void reducirStock(int idProducto, int cantidad) {
         String sql = "UPDATE producto SET cantidad_stock = cantidad_stock - ? WHERE id = ?";

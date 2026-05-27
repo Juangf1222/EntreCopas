@@ -2,7 +2,10 @@ package com.entrecopas.service;
 
 import java.util.List;
 
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.entrecopas.model.Producto;
 import com.entrecopas.repository.ProductoRepository;
@@ -22,6 +25,25 @@ public class ProductoService {
 
     public void guardar(Producto producto) {
         repository.guardar(producto);
+    }
+
+    public Producto buscarPorId(int id) {
+        try {
+            return repository.buscarPorId(id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND, "El producto con ID " + id + " no existe.");
+        }
+    }
+
+    public void actualizar(Producto producto) {
+        buscarPorId(producto.getId());
+        repository.actualizar(producto);
+    }
+
+    public void eliminar(int id) {
+        buscarPorId(id);
+        repository.eliminar(id);
     }
 
     public List<Producto> buscarPorTipo(String tipo) {
@@ -51,5 +73,5 @@ public class ProductoService {
 
     public List<Producto> productosMasCarosQuePromedio() {
         return repository.productosMasCarosQuePromedio();
-}
+    }
 }

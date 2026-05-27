@@ -47,10 +47,12 @@ public class ClienteService {
     }
 
     public void actualizar(Cliente cliente) {
+        buscarPorId(cliente.getId());
         repository.actualizar(cliente);
     }
 
     public void eliminar(int id) {
+        buscarPorId(id);
         repository.eliminar(id);
     }
 
