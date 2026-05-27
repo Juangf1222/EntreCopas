@@ -140,16 +140,29 @@ https://drive.google.com/file/d/1KJzKGYkgcWEpdgBHt4wBQgCzS5N25Qmg/view?usp=shari
 | POST | /clientes | Crea un nuevo cliente |
 | PUT | /clientes/{id} | Actualiza un cliente existente |
 | DELETE | /clientes/{id} | Elimina un cliente |
+| GET | /clientes/{id}/ventas | Retorna las ventas asociadas a un cliente |
 | GET | /productos | Retorna todos los productos |
 | GET | /productos/{id} | Retorna un producto por ID |
 | GET | /productos?tipo=alcoholico | Filtra productos por tipo |
 | POST | /productos | Crea un nuevo producto |
 | PUT | /productos/{id} | Actualiza un producto existente |
 | DELETE | /productos/{id} | Elimina un producto |
+| GET | /productos/buscar  | Permite buscar productos aplicando filtros por tipo y/o marca  |
+| GET | /productos/resumen-precios  | Retorna la suma total de los precios de todos los productos registrados  |
+| GET | /productos/paginado  | Retorna los productos de forma paginada utilizando parámetros de tamaño y página  |
+| GET | /productos/stock-bajo   | Retorna la lista de productos cuyo stock es menor a 10 unidades y requieren reposición  |
+| PUT | /productos/reponer/{id}   | Repone el stock de un producto específico agregando 50 unidades al inventario   |
+| GET | /productos/precio-superior-promedio   | Retorna los productos cuyo precio es superior al precio promedio de todos los productos registrados  |
 | GET | /ventas | Retorna todas las ventas |
-| POST | /ventas | Registra una nueva venta |
+| POST | /ventas/registrar | Registra una nueva venta |
 | GET | /usuarios | Retorna todos los usuarios |
+| POST | /usuarios | Crea un nuevo usuario |
+| POST | /usuarios/login  | Permite autenticar un usuario mediante correo y contraseña |
 | GET | /proveedores | Retorna todos los proveedores |
+| POST | /proveedores | Crea un nuevo proveedor |
+| DELETE | /proveedores/{id} | Retorna todos los proveedores |
+| GET | /reportes/productos-vendidos | Retorna un reporte con los productos vendidos, cantidad total vendida, ingresos generados y número de ventas realizadas |
+| GET | /reportes/detalle-ventas | Retorna un resumen general de ventas e ingresos |
 
 ---
 
